@@ -210,7 +210,7 @@ http://192.168.0.70:8000/ (can be accessed on any device on the same wifi networ
                         statusDiv.className = "success";
                         setTimeout(updateDisplay, 2500);
                     } else {
-                        statusDiv.innerHTML = `OUTSIDE RANGE (${Math.round(dist)}m)`;
+                        statusDiv.innerHTML = `NOT THERE YET! (${Math.round(dist)}m)`;
                         statusDiv.className = "error";
                         checkBtn.disabled = false;
                     }
