@@ -1,0 +1,234 @@
+<!--cd C:\Users\heath\Downloads\dev\www\amz && python -m http.server 8000
+http://localhost:8000/index.html#
+
+cd C:\Users\heath\Downloads\dev\www\amz && python -m http.server -b 192.168.0.70 8000
+http://192.168.0.70:8000/ (can be accessed on any device on the same wifi network from this address)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAZR: Field Challenge</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .card {
+            background: #1e1e1e;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            max-width: 400px;
+            border: 1px solid #333;
+        }
+        h1 { color: #ffca28; margin-bottom: 0.5rem; letter-spacing: 4px; font-weight: 900; }
+        #case-id { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 2px; }
+        .clue-box {
+            background: #252525;
+            padding: 20px;
+            border-top: 4px solid #ffca28;
+            margin: 20px 0;
+            font-size: 1.1rem;
+            font-style: italic;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        button {
+            background-color: #ffca28;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+        button:disabled { background-color: #444; color: #888; cursor: not-allowed; }
+        .reset-link {
+            margin-top: 25px;
+            font-size: 0.7rem;
+            color: #666;
+            text-decoration: underline;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .reset-link:hover { color: #ff5252; }
+        #status { margin-top: 20px; font-weight: bold; min-height: 24px; font-size: 0.9rem; }
+        .success { color: #4caf50; }
+        .error { color: #ff5252; }
+        .progress { font-size: 0.8rem; color: #ffca28; margin-top: 10px; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>AMAZR</h1>
+        <div id="case-id">Loading...</div>
+        
+        <div id="clue-text" class="clue-box">
+            Syncing coordinates...
+        </div>
+
+        <button id="checkBtn">CHECK LOCATION</button>
+        <div class="progress" id="progress-text">Station 0 of 0</div>
+        <div id="status"></div>
+
+        <div class="reset-link" id="resetBtn">Reset Race Progress</div>
+    </div>
+
+    <script>
+        const CLUES = [
+            {
+                id: "STATION 1",
+                text: "The giant wheel stands silent by the shore. Find the base of the white pillar nearest the water.",
+                lat: -37.82553, 
+                lon: 144.85302
+            },
+            {
+                id: "STATION 2",
+                text: "Where the iron tracks meet the glass roof. Stand under the great clock where travelers wait.",
+                lat: -37.8183,
+                lon: 144.9525
+            },
+            {
+                id: "STATION 3",
+                text: "The final pit stop: Beneath the golden arches of the library's great dome.",
+                lat: -37.8105,
+                lon: 144.9645
+            }
+        ];
+
+        let currentStep = 0;
+        const SUCCESS_RADIUS_METERS = 50;
+        const STORAGE_KEY = "amazr_progress";
+
+        const checkBtn = document.getElementById('checkBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const statusDiv = document.getElementById('status');
+        const clueDiv = document.getElementById('clue-text');
+        const caseIdDiv = document.getElementById('case-id');
+        const progressDiv = document.getElementById('progress-text');
+
+        // --- LOCAL STORAGE LOGIC ---
+
+        function saveProgress() {
+            const data = {
+                step: currentStep,
+                date: new Date().toISOString().split('T')[0] // Saves as YYYY-MM-DD
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadProgress() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                const today = new Date().toISOString().split('T')[0];
+                
+                // Only load if it was saved today
+                if (parsed.date === today) {
+                    currentStep = parsed.step;
+                } else {
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+            }
+        }
+
+        function resetGame() {
+            if (confirm("Are you sure you want to restart the race from Clue 1?")) {
+                currentStep = 0;
+                localStorage.removeItem(STORAGE_KEY);
+                checkBtn.style.display = "block";
+                updateDisplay();
+            }
+        }
+
+        // --- CORE GAMEPLAY ---
+
+        function updateDisplay() {
+            if (currentStep < CLUES.length) {
+                caseIdDiv.innerText = `${CLUES[currentStep].id}`;
+                clueDiv.innerText = `"${CLUES[currentStep].text}"`;
+                progressDiv.innerText = `Station ${currentStep + 1} of ${CLUES.length}`;
+                statusDiv.innerText = "";
+                statusDiv.className = "";
+                checkBtn.disabled = false;
+            } else {
+                caseIdDiv.innerText = "FINISH LINE";
+                clueDiv.innerText = "Congratulations! Field agent status: ELITE.";
+                progressDiv.innerText = "AMAZR - Race Complete";
+                checkBtn.style.display = "none";
+            }
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        }
+
+        checkBtn.addEventListener('click', () => {
+            statusDiv.innerHTML = "PINGING SATELLITE...";
+            statusDiv.className = "";
+            checkBtn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const dist = calculateDistance(
+                        position.coords.latitude, 
+                        position.coords.longitude, 
+                        CLUES[currentStep].lat, 
+                        CLUES[currentStep].lon
+                    );
+
+                    if (dist <= SUCCESS_RADIUS_METERS) {
+                        currentStep++;
+                        saveProgress(); // Save next step to storage
+                        statusDiv.innerHTML = "✓ LOCATION MATCHED! GET MOVING...";
+                        statusDiv.className = "success";
+                        setTimeout(updateDisplay, 2500);
+                    } else {
+                        statusDiv.innerHTML = `OUTSIDE RANGE (${Math.round(dist)}m)`;
+                        statusDiv.className = "error";
+                        checkBtn.disabled = false;
+                    }
+                },
+                (err) => {
+                    statusDiv.innerHTML = "GPS SIGNAL BLOCKED.";
+                    statusDiv.className = "error";
+                    checkBtn.disabled = false;
+                },
+                { enableHighAccuracy: true }
+            );
+        });
+
+        resetBtn.addEventListener('click', resetGame);
+
+        // --- INIT ---
+        loadProgress();
+        updateDisplay();
+    </script>
+</body>
+</html>
