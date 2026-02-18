@@ -3,6 +3,9 @@ http://localhost:8000/index.html#
 
 cd C:\Users\heath\Downloads\dev\www\amz && python -m http.server -b 192.168.0.70 8000
 http://192.168.0.70:8000/ (can be accessed on any device on the same wifi network from this address)
+
+enable location services through iphone settings for the safari apple-system
+enable precise location through apps for chrome on android (else location close but wrong)
 -->
 
 <!DOCTYPE html>
@@ -195,6 +198,7 @@ http://192.168.0.70:8000/ (can be accessed on any device on the same wifi networ
             checkBtn.disabled = true;
 
             navigator.geolocation.getCurrentPosition(
+			//navigator.geolocation.watchPosition(
                 (position) => {
                     const dist = calculateDistance(
                         position.coords.latitude, 
