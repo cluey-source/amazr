@@ -131,7 +131,7 @@
                 lon_test: 144.85302,
 				lat: -36.89620871657927, 
 				lon: 149.9112405183021,
-				question: "Complete the donut challenge. When you're finished. Ask the station master for the password and enter it here. Then youire off and running!",
+				question: "Complete the donut challenge. When you're finished. Ask the station master for the password and enter it here. Then you're off and running!",
 				answer: "donut",
 				spot: "skate park"
 			},
@@ -142,7 +142,7 @@
                 lon_test: 144.85302,
 				lat: -36.89712859003159,
 				lon: 149.9146926789455,
-				question: "Ask the station master where to dig. When you find the hidden coins, the station masetr will give you the password to enter here.",
+				question: "Ask the station master where to dig. When you find the hidden coin, the station masetr will give you the password to enter here.",
 				answer: "silver",
 				spot: "skate park"
 			},
@@ -159,7 +159,7 @@
             },
             {
                 id: "STATION 4",
-                text: "Get on 'board' and walk on water without getting wet, past the mangroves and the sunset's silhouette. Follow the path that snakes by the shore, through the trees where the oysters are plenty and more. Check in next to the fisheries building.",
+                text: "Get on 'board' and 'walk' on water without getting wet, past the mangroves and the sunset's silhouette. Follow the path that snakes by the shore, through the trees where the oysters are plenty and more. Check in at the start of the walk next to the fisheries building. It has big 'Keep Clear' signs painted on the garage doors in white, a ladder on the roof and a map of the fish you can catch on the wall.",
                 lat_test: -37.82553, 
                 lon_test: 144.85302,
 				lat: -36.89454044417496, 
@@ -282,17 +282,24 @@
         // --- ADMIN BYPASS LOGIC ---
 
         adminTrigger.addEventListener('dblclick', () => {
-            const jumpTo = prompt(`ADMIN MODE\nEnter Station # (1-${CLUES.length}) or "F" for Finish:`);
+            const jumpTo = prompt(`ADMIN MODE\nEnter Station # (1-${CLUES.length}), "F" for Finish, or "Z" to force GPS Success:`);
             if (jumpTo === null) return;
 
-            if (jumpTo.toLowerCase() === 'f') {
+            const input = jumpTo.trim().toLowerCase();
+
+            if (input === 'z') {
+                // Force GPS Success: Move to Trivia for current step
+                isTriviaMode = true;
+                statusDiv.innerHTML = "✓ ADMIN OVERRIDE: GPS SUCCESS";
+                statusDiv.className = "success";
+            } else if (input === 'f') {
                 currentStep = CLUES.length;
                 isTriviaMode = false;
             } else {
-                const val = parseInt(jumpTo);
+                const val = parseInt(input);
                 if (!isNaN(val) && val >= 1 && val <= CLUES.length) {
                     currentStep = val - 1;
-                    isTriviaMode = false; // Always jump back to location check mode
+                    isTriviaMode = false; // Always jump back to location check mode for specific station jumps
                 } else {
                     alert("Invalid input.");
                     return;
@@ -308,8 +315,12 @@
             if (currentStep < CLUES.length) {
                 caseIdDiv.innerText = `${CLUES[currentStep].id}`;
                 progressDiv.innerText = `Station ${currentStep + 1} of ${CLUES.length}`;
-                statusDiv.innerText = "";
-                statusDiv.className = "";
+                
+                // Don't clear status if it was just set by Z-code override
+                if (!statusDiv.innerHTML.includes("ADMIN OVERRIDE")) {
+                    statusDiv.innerText = "";
+                    statusDiv.className = "";
+                }
 
                 if (isTriviaMode) {
                     clueDiv.innerText = `TRIVIA: ${CLUES[currentStep].question}`;
@@ -329,6 +340,7 @@
                 locationUi.classList.add('hidden');
                 triviaUi.classList.add('hidden');
                 checkBtn.style.display = "none";
+                statusDiv.innerText = "";
             }
         }
 
