@@ -323,7 +323,11 @@
                 }
 
                 if (isTriviaMode) {
-                    clueDiv.innerHTML = `TRIVIA: ${CLUES[currentStep].question}`;
+                    if (currentStep !== 5) {
+						clueDiv.innerHTML = `TRIVIA: ${CLUES[currentStep].question}`;
+					} else {
+						clueDiv.innerHTML = `${CLUES[currentStep].question}`;
+					}
                     locationUi.classList.add('hidden');
                     triviaUi.classList.remove('hidden');
                     triviaInput.value = "";
